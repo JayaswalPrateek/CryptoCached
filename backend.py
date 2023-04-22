@@ -2,6 +2,9 @@ import datetime as dt
 import sqlite3
 from typing import Any
 import requests
+import prettytable
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class backend:
@@ -12,7 +15,7 @@ class backend:
     """
     def __init__(self, homeCurrency: str, numOfTokensToBuy: int, moneyToBuyTokens: float) -> None:
         self.homeCurrency: str = homeCurrency
-        self.tokensToBuy: int = numOfTokensToBuy
+        self.numOfTokensToBuy: int = numOfTokensToBuy
         self.moneyToBuyTokens: float = moneyToBuyTokens
 
     def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
@@ -45,9 +48,9 @@ class backend:
         # SAMPLE {'time': '2023-04-22', 'INR': 81.9716, 'EUR': 0.9008, 'GBP': 0.8039, 'DOGE': 0.064192}
 
     def compareTarget(self, rates: dict[str, str | float]) -> bool:  # RETURNS TRUE IF CURRENT CRYPTO RATE >= TARGET
-        if self.homeCurrency != "USD" and self.moneyToBuyTokens / (rates[self.homeCurrency] * self.tokensToBuy) >= rates["DOGE"]:
+        if self.homeCurrency != "USD" and self.moneyToBuyTokens / (rates[self.homeCurrency] * self.numOfTokensToBuy) >= rates["DOGE"]:
             return True
-        if self.moneyToBuyTokens / self.tokensToBuy >= rates["DOGE"]:
+        if self.moneyToBuyTokens / self.numOfTokensToBuy >= rates["DOGE"]:
             return True
         return False
 
@@ -102,9 +105,32 @@ class backend:
         cachedRatesdb.commit()
         cachedRatesdb.close()
 
+    def printDB(self) -> None:
+        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
+        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+        cursor.execute('SELECT * FROM cache')
+        table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
+        print(table)
+
+    def plot(self) -> None:
+        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
+        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+        cursor.execute("SELECT timestamp, DOGE FROM cache")
+        result: list[tuple[str, float]] = cursor.fetchall()
+        timestamps = np.array([result[0] for result in result])
+        doge = np.array([result[1] for result in result])
+        cachedRatesdb.close()
+        plt.plot(timestamps, doge)
+        plt.title("Historical Exchange Rate Of DOGE in USD")
+        plt.xlabel('Timestamps (in days)')
+        plt.ylabel('DOGE\'s exchange rate (in USD)')
+        plt.show()
+
 
 if __name__ == "__main__":
     instance = backend("INR", 600, 8100)
     rate: dict[str, str | float] = backend.fetchRates(self=instance)
-    backend.compareTarget(self=instance, rates=rate)
+    # backend.compareTarget(self=instance, rates=rate)
     backend.dbHandler(self=instance)
+    backend.printDB(self=instance)
+    backend.plot(self=instance)
