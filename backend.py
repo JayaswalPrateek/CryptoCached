@@ -13,9 +13,10 @@ class backend:
     numOfTokensToBuy is the number of tokens you are willing to buy with the total budget of moneyToBuyTokens
     numOfTokensToBuy should never be 0 otherwise it will lead to ZeroDivisionError
     """
-    def __init__(self, homeCurrency: str, numOfTokensToBuy: int, moneyToBuyTokens: float) -> None:
+
+    def __init__(self, homeCurrency: str, numOfTokensToBuy: float, moneyToBuyTokens: float) -> None:
         self.homeCurrency: str = homeCurrency
-        self.numOfTokensToBuy: int = numOfTokensToBuy
+        self.numOfTokensToBuy: float = numOfTokensToBuy
         self.moneyToBuyTokens: float = moneyToBuyTokens
 
     def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
@@ -96,9 +97,7 @@ class backend:
             )"""
         )
         for dc in weekRates:
-            cursor.execute(
-                f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']})"
-            )
+            cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']})")
         # cursor.execute("SELECT * FROM cache")
         # print(cursor.fetchall())
 
@@ -108,7 +107,7 @@ class backend:
     def printDB(self) -> None:
         cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
         cursor: sqlite3.Cursor = cachedRatesdb.cursor()
-        cursor.execute('SELECT * FROM cache')
+        cursor.execute("SELECT * FROM cache")
         table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
         print(table)
 
@@ -122,8 +121,8 @@ class backend:
         cachedRatesdb.close()
         plt.plot(timestamps, doge)
         plt.title("Historical Exchange Rate Of DOGE in USD")
-        plt.xlabel('Timestamps (in days)')
-        plt.ylabel('DOGE\'s exchange rate (in USD)')
+        plt.xlabel("Timestamps (in days)")
+        plt.ylabel("DOGE's exchange rate (in USD)")
         plt.show()
 
 
