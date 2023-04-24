@@ -23,7 +23,7 @@ class backend:
 
         # GET FIAT CURRENCY EXCHANGE RATES
         response: requests.Response = requests.get(url, params={"base": "USD", "symbols": "INR,EUR,GBP", "places": 4}, timeout=10)
-        data: Any = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
+        data: dict = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
         rates: dict[str, float] = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # CREATE DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
         entry: dict[str, str | float] = {
@@ -117,8 +117,8 @@ class backend:
         cursor: sqlite3.Cursor = cachedRatesdb.cursor()
         cursor.execute("SELECT timestamp, DOGE FROM cache")
         result: list[tuple[str, float]] = cursor.fetchall()
-        timestamps = np.array([result[0] for result in result])
-        doge = np.array([result[1] for result in result])
+        timestamps: np.ndarray[str, np.dtype[Any]] = np.array([result[0] for result in result])
+        doge: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
         plt.plot(timestamps, doge)
         plt.title("Historical Exchange Rate Of DOGE in USD")
