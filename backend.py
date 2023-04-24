@@ -10,14 +10,17 @@ import numpy as np
 class backend:
     """
     homeCurrency can be: "INR", "EUR", "GBP" or "USD"
-    numOfTokensToBuy is the number of tokens you are willing to buy with the total budget of moneyToBuyTokens
-    numOfTokensToBuy should never be 0 otherwise it will lead to ZeroDivisionError
+    numOfDOGEToBuy is the number of DOGE you are willing to buy with the total budget of moneyToBuyDOGE
+    numOfDOGEToBuy should never be 0 otherwise it will lead to ZeroDivisionError
+    same for LTC as well
     """
 
-    def __init__(self, homeCurrency: str, numOfTokensToBuy: float, moneyToBuyTokens: float) -> None:
+    def __init__(self, homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float) -> None:
         self.homeCurrency: str = homeCurrency
-        self.numOfTokensToBuy: float = numOfTokensToBuy
-        self.moneyToBuyTokens: float = moneyToBuyTokens
+        self.numOfDOGEToBuy: float = numOfDOGEToBuy
+        self.moneyToBuyDOGE: float = moneyToBuyDOGE
+        self.numOfLTCToBuy: float = numOfLTCToBuy
+        self.moneyToBuyLTC: float = moneyToBuyLTC
 
     def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
         url: str = f"https://api.exchangerate.host/{date}"
@@ -37,23 +40,27 @@ class backend:
         # GET CRYPTO CURRENCY EXCHANGE RATES
         response = requests.get(
             url,
-            params={"base": "USD", "source": "crypto", "symbols": "DOGE"},
+            params={"base": "USD", "source": "crypto", "symbols": "DOGE,LTC"},
             timeout=10,
         )
         data = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
         rates = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # APPEND THE RATE TO ENTRY DICT
         entry["DOGE"] = rates["DOGE"]
+        entry["LTC"] = rates["LTC"]
 
         return entry  # {TIMESTAMP, FIAT RATE, CRYPTO RATE}
-        # SAMPLE {'time': '2023-04-22', 'INR': 81.9716, 'EUR': 0.9008, 'GBP': 0.8039, 'DOGE': 0.064192}
+        # SAMPLE {'time': '2023-04-24', 'INR': 82.0465, 'EUR': 0.911, 'GBP': 0.8042, 'DOGE': 0.06574, 'LTC': 3.6e-05}
 
-    def compareTarget(self, rates: dict[str, str | float]) -> bool:  # RETURNS TRUE IF CURRENT CRYPTO RATE >= TARGET
-        if self.homeCurrency != "USD" and self.moneyToBuyTokens / (rates[self.homeCurrency] * self.numOfTokensToBuy) >= rates["DOGE"]:
-            return True
-        if self.moneyToBuyTokens / self.numOfTokensToBuy >= rates["DOGE"]:
-            return True
-        return False
+    def compareTarget(self, rates: dict[str, str | float]) -> dict[str, bool]:  # RETURNS dict with keys "DOGE" and "LTC and bool values"
+        res = {"DOGE": False, "LTC": False}
+        if self.homeCurrency != "USD":
+            res["DOGE"] = self.moneyToBuyDOGE / (rates[self.homeCurrency] * self.numOfDOGEToBuy) >= rates["DOGE"]
+            res["LTC"] = self.moneyToBuyLTC / (rates[self.homeCurrency] * self.numOfLTCToBuy) >= rates["LTC"]
+        else:
+            res["DOGE"] = self.moneyToBuyDOGE / self.numOfDOGEToBuy >= rates["DOGE"]
+            res["LTC"] = self.moneyToBuyLTC / self.numOfLTCToBuy >= rates["LTC"]
+        return res
 
     def ratesThisWeek(self) -> list[dict[str, str | float]]:
         today: dt.date = dt.date.today()
@@ -66,7 +73,8 @@ class backend:
                 INR real,
                 EUR real,
                 GBP real,
-                DOGE real
+                DOGE real,
+                LTC real
             )"""
         )
 
@@ -93,13 +101,12 @@ class backend:
                 INR real,
                 EUR real,
                 GBP real,
-                DOGE real
+                DOGE real,
+                LTC real
             )"""
         )
         for dc in weekRates:
-            cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']})")
-        # cursor.execute("SELECT * FROM cache")
-        # print(cursor.fetchall())
+            cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']}, {dc['LTC']})")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
@@ -111,25 +118,25 @@ class backend:
         table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
         print(table)
 
-    def plot(self) -> None:
+    def plot(self, coin: str) -> None:  # coin can be "DOGE" or "LTC"
         cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
         cursor: sqlite3.Cursor = cachedRatesdb.cursor()
-        cursor.execute("SELECT timestamp, DOGE FROM cache")
+        cursor.execute(f"SELECT timestamp, {coin} FROM cache")
         result: list[tuple[str, float]] = cursor.fetchall()
         timestamps: np.ndarray[str, np.dtype[Any]] = np.array([result[0] for result in result])
-        doge: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
+        coinRates: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
-        plt.plot(timestamps, doge)
-        plt.title("Historical Exchange Rate Of DOGE in USD")
+        plt.plot(timestamps, coinRates)
+        plt.title(f"Historical Exchange Rate Of {coin} in USD")
         plt.xlabel("Timestamps (in days)")
-        plt.ylabel("DOGE's exchange rate (in USD)")
+        plt.ylabel(f"{coin}'s exchange rate (in USD)")
         plt.show()
 
 
 if __name__ == "__main__":
-    instance = backend("INR", 600, 8100)
-    rate: dict[str, str | float] = backend.fetchRates(self=instance)
-    # backend.compareTarget(self=instance, rates=rate)
+    instance = backend("USD", 1, 0.06575, 1, 73.141008)
+    # rate: dict[str, str | float] = backend.fetchRates(self=instance)
     backend.dbHandler(self=instance)
     backend.printDB(self=instance)
-    backend.plot(self=instance)
+    backend.plot(self=instance, coin="DOGE")
+    backend.plot(self=instance, coin="LTC")
