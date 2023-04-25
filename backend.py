@@ -146,7 +146,6 @@ class backend:
 
         cursor.execute("SELECT COUNT(*) FROM cache")
         num_rows: int = cursor.fetchone()[0]
-
         if num_rows >= rowsTBDel:
             cursor.execute(f"DELETE FROM cache WHERE ROWID IN (SELECT ROWID FROM cache ORDER BY ROWID DESC LIMIT {rowsTBDel})")
             cachedRatesdb.commit()
