@@ -23,15 +23,15 @@ class backend:
         self.moneyToBuyLTC: float = moneyToBuyLTC
         print(f"backend object constructed with {homeCurrency}, {numOfDOGEToBuy}, {moneyToBuyDOGE}, {numOfLTCToBuy}, {moneyToBuyLTC}\n\n")
 
-    def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
+    def fetchRates(self, date: str = "latest") -> dict[str, str | float]:
         url: str = f"https://api.exchangerate.host/{date}"
 
         # GET FIAT CURRENCY EXCHANGE RATES
         response: requests.Response = requests.get(url, params={"base": "USD", "symbols": "INR,EUR,GBP", "places": 4}, timeout=10)
-        data: dict = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
+        data: dict = response.json()
         print(f"{response} received for date {date} as {data}\n")
         rates: dict[str, float] = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
-        # CREATE DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
+        # CREATE ENTRY DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
         entry: dict[str, str | float] = {
             "time": data["date"],
             "INR": rates["INR"],
@@ -45,18 +45,20 @@ class backend:
             params={"base": "USD", "source": "crypto", "symbols": "DOGE,LTC"},
             timeout=10,
         )
-        data = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
+        data = response.json()
         print(f"{response} received for date {date} as {data}\n")
         rates = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # APPEND THE RATE TO ENTRY DICT
         entry["DOGE"] = rates["DOGE"]
         entry["LTC"] = rates["LTC"]
         print(f"extracted {entry} from response\n\n\n\n")
-        return entry  # {TIMESTAMP, FIAT RATE, CRYPTO RATE}
+        return entry
+        # FORMAT {TIMESTAMP, FIAT RATE, CRYPTO RATE}
         # SAMPLE {'time': '2023-04-24', 'INR': 82.0465, 'EUR': 0.911, 'GBP': 0.8042, 'DOGE': 0.06574, 'LTC': 3.6e-05}
 
-    def compareTarget(self, rates: dict[str, str | float]) -> dict[str, bool]:  # RETURNS dict with keys "DOGE" and "LTC and bool values"
-        res = {"DOGE": False, "LTC": False}
+    def compareTarget(self) -> dict[str, bool]:  # RETURNS dict with keys "DOGE" and "LTC and bool values"
+        rates: dict[str, str | float] = self.fetchRates()
+        res: dict[str, bool] = {"DOGE": False, "LTC": False}
         if self.homeCurrency != "USD":
             res["DOGE"] = self.moneyToBuyDOGE / (rates[self.homeCurrency] * self.numOfDOGEToBuy) >= rates["DOGE"]
             res["LTC"] = self.moneyToBuyLTC / (rates[self.homeCurrency] * self.numOfLTCToBuy) >= rates["LTC"]
@@ -86,14 +88,13 @@ class backend:
 
         for i in range(7, -1, -1):
             date = str(today - dt.timedelta(days=i))
-            if date not in timestamps:  # IF THE TIMESTAMP CACHED IN DB, DONT FETCH IT AGAIN
+            if date not in timestamps:  # DONT FETCH RATES AGAIN IF THE TIMESTAMP CACHED IN DB
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
             else:
                 print(f"rates for {date} already in sqlite3 cache")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
-
         return ratesThisWeekAsListOfDicts
 
     def dbHandler(self) -> None:
@@ -164,9 +165,9 @@ class backend:
 
 if __name__ == "__main__":
     instance = backend("USD", 1, 0.06575, 1, 73.141008)
-    # rate: dict[str, str | float] = backend.fetchRates(self=instance)
     backend.dbHandler(self=instance)  # refresh the db
     backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries
     backend.dbHandler(self=instance)  # refresh again to demonstrate caching as only 3 are still cached
     backend.plot(self=instance, coin="DOGE")
     backend.plot(self=instance, coin="LTC")
+    print(backend.compareTarget(self=instance))
