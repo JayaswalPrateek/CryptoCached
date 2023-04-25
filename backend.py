@@ -21,6 +21,7 @@ class backend:
         self.moneyToBuyDOGE: float = moneyToBuyDOGE
         self.numOfLTCToBuy: float = numOfLTCToBuy
         self.moneyToBuyLTC: float = moneyToBuyLTC
+        print(f"backend object constructed with {homeCurrency}, {numOfDOGEToBuy}, {moneyToBuyDOGE}, {numOfLTCToBuy}, {moneyToBuyLTC}\n\n")
 
     def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
         url: str = f"https://api.exchangerate.host/{date}"
@@ -28,6 +29,7 @@ class backend:
         # GET FIAT CURRENCY EXCHANGE RATES
         response: requests.Response = requests.get(url, params={"base": "USD", "symbols": "INR,EUR,GBP", "places": 4}, timeout=10)
         data: dict = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
+        print(f"{response} received for date {date} as {data}\n")
         rates: dict[str, float] = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # CREATE DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
         entry: dict[str, str | float] = {
@@ -44,11 +46,12 @@ class backend:
             timeout=10,
         )
         data = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
+        print(f"{response} received for date {date} as {data}\n")
         rates = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # APPEND THE RATE TO ENTRY DICT
         entry["DOGE"] = rates["DOGE"]
         entry["LTC"] = rates["LTC"]
-
+        print(f"extracted {entry} from response\n\n\n\n")
         return entry  # {TIMESTAMP, FIAT RATE, CRYPTO RATE}
         # SAMPLE {'time': '2023-04-24', 'INR': 82.0465, 'EUR': 0.911, 'GBP': 0.8042, 'DOGE': 0.06574, 'LTC': 3.6e-05}
 
@@ -85,6 +88,8 @@ class backend:
             date = str(today - dt.timedelta(days=i))
             if date not in timestamps:  # IF THE TIMESTAMP CACHED IN DB, DONT FETCH IT AGAIN
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
+            else:
+                print(f"rates for {date} already in sqlite3 cache")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
@@ -105,8 +110,11 @@ class backend:
                 LTC real
             )"""
         )
+        if len(weekRates) != 0:
+            print(f"{weekRates} will be cached in sqlite\n\n")
         for dc in weekRates:
             cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']}, {dc['LTC']})")
+            print(f"successfully cached {dc}")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
