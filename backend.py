@@ -118,6 +118,7 @@ class backend:
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
+        self.printDB()
 
     def printDB(self) -> None:
         cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
@@ -164,8 +165,8 @@ class backend:
 if __name__ == "__main__":
     instance = backend("USD", 1, 0.06575, 1, 73.141008)
     # rate: dict[str, str | float] = backend.fetchRates(self=instance)
-    backend.test(self=instance, rowsTBDel=4)
-    backend.dbHandler(self=instance)
-    backend.printDB(self=instance)
+    backend.dbHandler(self=instance)  # refresh the db
+    backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries
+    backend.dbHandler(self=instance)  # refresh again to demonstrate caching as only 3 are still cached
     backend.plot(self=instance, coin="DOGE")
     backend.plot(self=instance, coin="LTC")
