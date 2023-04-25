@@ -140,10 +140,32 @@ class backend:
         plt.ylabel(f"{coin}'s exchange rate (in USD)")
         plt.show()
 
+    def test(self, rowsTBDel: int) -> None:
+        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
+        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM cache")
+        num_rows: int = cursor.fetchone()[0]
+
+        if num_rows >= rowsTBDel:
+            cursor.execute(f"DELETE FROM cache WHERE ROWID IN (SELECT ROWID FROM cache ORDER BY ROWID DESC LIMIT {rowsTBDel})")
+            cachedRatesdb.commit()
+            print(f"Last {rowsTBDel} rows deleted successfully.")
+            cachedRatesdb.commit()
+        else:
+            print(f"There are not enough rows in the table to delete the last {rowsTBDel} rows")
+
+        cursor.execute("SELECT * FROM cache")
+        table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
+        print(table)
+
+        cachedRatesdb.close()
+
 
 if __name__ == "__main__":
     instance = backend("USD", 1, 0.06575, 1, 73.141008)
     # rate: dict[str, str | float] = backend.fetchRates(self=instance)
+    backend.test(self=instance, rowsTBDel=4)
     backend.dbHandler(self=instance)
     backend.printDB(self=instance)
     backend.plot(self=instance, coin="DOGE")
