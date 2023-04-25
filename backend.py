@@ -1,6 +1,5 @@
 import datetime as dt
 import sqlite3
-from typing import Any
 import requests
 import prettytable
 import matplotlib.pyplot as plt
@@ -133,8 +132,8 @@ class backend:
         cursor: sqlite3.Cursor = cachedRatesdb.cursor()
         cursor.execute(f"SELECT timestamp, {coin} FROM cache")
         result: list[tuple[str, float]] = cursor.fetchall()
-        timestamps: np.ndarray[str, np.dtype[Any]] = np.array([result[0] for result in result])
-        coinRates: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
+        timestamps: np.ndarray[str, np.dtype[np.string_]] = np.array([result[0] for result in result])
+        coinRates: np.ndarray[float, np.dtype[np.float64]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
         plt.plot(timestamps, coinRates)
         plt.title(f"Historical Exchange Rate Of {coin} in USD")
