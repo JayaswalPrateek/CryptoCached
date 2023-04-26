@@ -1,5 +1,6 @@
 import datetime as dt
 import sqlite3
+from typing import Any
 import requests
 import prettytable
 import matplotlib.pyplot as plt
@@ -22,15 +23,15 @@ class backend:
         self.moneyToBuyLTC: float = moneyToBuyLTC
         print(f"backend object constructed with {homeCurrency}, {numOfDOGEToBuy}, {moneyToBuyDOGE}, {numOfLTCToBuy}, {moneyToBuyLTC}\n\n")
 
-    def fetchRates(self, date: str = "latest") -> dict[str, str | float]:
+    def fetchRates(self, date: str = "latest") -> dict[str, str | float]:  # BY DEFAULT IT FETCHES THE LATEST RATES, ARG CAN OVERRIDE THIS BEHAVIOUR
         url: str = f"https://api.exchangerate.host/{date}"
 
         # GET FIAT CURRENCY EXCHANGE RATES
         response: requests.Response = requests.get(url, params={"base": "USD", "symbols": "INR,EUR,GBP", "places": 4}, timeout=10)
-        data: dict = response.json()
+        data: dict = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
         print(f"{response} received for date {date} as {data}\n")
         rates: dict[str, float] = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
-        # CREATE ENTRY DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
+        # CREATE DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
         entry: dict[str, str | float] = {
             "time": data["date"],
             "INR": rates["INR"],
@@ -44,15 +45,14 @@ class backend:
             params={"base": "USD", "source": "crypto", "symbols": "DOGE,LTC"},
             timeout=10,
         )
-        data = response.json()
+        data = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
         print(f"{response} received for date {date} as {data}\n")
         rates = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # APPEND THE RATE TO ENTRY DICT
         entry["DOGE"] = rates["DOGE"]
         entry["LTC"] = rates["LTC"]
         print(f"extracted {entry} from response\n\n\n\n")
-        return entry
-        # FORMAT {TIMESTAMP, FIAT RATE, CRYPTO RATE}
+        return entry  # {TIMESTAMP, FIAT RATE, CRYPTO RATE}
         # SAMPLE {'time': '2023-04-24', 'INR': 82.0465, 'EUR': 0.911, 'GBP': 0.8042, 'DOGE': 0.06574, 'LTC': 3.6e-05}
 
     def compareTarget(self) -> dict[str, bool]:  # RETURNS dict with keys "DOGE" and "LTC and bool values"
@@ -87,13 +87,14 @@ class backend:
 
         for i in range(7, -1, -1):
             date = str(today - dt.timedelta(days=i))
-            if date not in timestamps:  # DONT FETCH RATES AGAIN IF THE TIMESTAMP CACHED IN DB
+            if date not in timestamps:  # IF THE TIMESTAMP CACHED IN DB, DONT FETCH IT AGAIN
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
             else:
                 print(f"rates for {date} already in sqlite3 cache")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
+
         return ratesThisWeekAsListOfDicts
 
     def dbHandler(self) -> None:
@@ -132,13 +133,16 @@ class backend:
         cursor: sqlite3.Cursor = cachedRatesdb.cursor()
         cursor.execute(f"SELECT timestamp, {coin} FROM cache")
         result: list[tuple[str, float]] = cursor.fetchall()
-        timestamps: np.ndarray[str, np.dtype[np.string_]] = np.array([result[0] for result in result])
-        coinRates: np.ndarray[float, np.dtype[np.float64]] = np.array([result[1] for result in result])
+        timestamps: np.ndarray[str, np.dtype[Any]] = np.array([result[0] for result in result])
+        coinRates: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
-        plt.plot(timestamps, coinRates)
+        plt.style.use('dark_background')
+        plt.plot(timestamps, coinRates,color = "#a01bf2")
         plt.title(f"Historical Exchange Rate Of {coin} in USD")
         plt.xlabel("Timestamps (in days)")
         plt.ylabel(f"{coin}'s exchange rate (in USD)")
+        figManager = plt.get_current_fig_manager()
+        figManager.window.state('zoomed')
         plt.show()
 
     def test(self, rowsTBDel: int) -> None:
@@ -161,12 +165,22 @@ class backend:
 
         cachedRatesdb.close()
 
-
-if __name__ == "__main__":
-    instance = backend("USD", 1, 0.06575, 1, 73.141008)
+def main2(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float,choice: int,func: int):
+    instance = backend(homeCurrency, numOfDOGEToBuy, moneyToBuyDOGE, numOfLTCToBuy, moneyToBuyLTC)
+    # rate: dict[str, str | float] = backend.fetchRates(self=instance)
     backend.dbHandler(self=instance)  # refresh the db
     backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries
     backend.dbHandler(self=instance)  # refresh again to demonstrate caching as only 3 are still cached
-    backend.plot(self=instance, coin="DOGE")
-    backend.plot(self=instance, coin="LTC")
-    print(backend.compareTarget(self=instance))
+    
+    if(func):
+        if choice == 2:
+            backend.plot(self=instance, coin="DOGE")
+            backend.plot(self=instance, coin="LTC")
+        elif choice == 1:
+            backend.plot(self=instance, coin="DOGE")
+        else:
+            backend.plot(self=instance, coin="LTC")
+    else:
+        ret_val = backend.compareTarget(self=instance)
+        print(ret_val)
+        return(ret_val)
