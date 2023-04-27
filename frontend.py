@@ -167,10 +167,10 @@ class App(customtkinter.CTk):
     def cmpr(self):
         c1 = self.crypt1_cb.get()
         c2 = self.crypt2_cb.get()
-        crypt1_box1 = 0
-        crypt1_box2 = 0
-        crypt2_box1 = 0
-        crypt2_box2 = 0
+        crypt1_box1 = -1
+        crypt1_box2 = -1
+        crypt2_box1 = -1
+        crypt2_box2 = -1
         if c1 and c2:
             if len(self.crypt1_ent1.get()) > 0:
                 crypt1_box1 = float(self.crypt1_ent1.get())

@@ -29,7 +29,7 @@ class backend:
         # GET FIAT CURRENCY EXCHANGE RATES
         response: requests.Response = requests.get(url, params={"base": "USD", "symbols": "INR,EUR,GBP", "places": 4}, timeout=10)
         data: dict = response.json()  # TRANSFORM RESPONSE OBJ INTO JSON OBJ
-        print(f"{response} received for date {date} as {data}\n")
+        print(f"\n{response} received for date {date} as {data}")
         rates: dict[str, float] = data["rates"]  # EXTRACT RATES DICT FROM JSON OBJ
         # CREATE DICT WITH TIMESTAMPS + FIAT CURRENCY RATES
         entry: dict[str, str | float] = {
@@ -51,7 +51,7 @@ class backend:
         # APPEND THE RATE TO ENTRY DICT
         entry["DOGE"] = rates["DOGE"]
         entry["LTC"] = rates["LTC"]
-        print(f"extracted {entry} from response\n\n\n\n")
+        print(f"extracted {entry} from response\n\n")
         return entry  # {TIMESTAMP, FIAT RATE, CRYPTO RATE}
         # SAMPLE {'time': '2023-04-24', 'INR': 82.0465, 'EUR': 0.911, 'GBP': 0.8042, 'DOGE': 0.06574, 'LTC': 3.6e-05}
 
@@ -156,18 +156,15 @@ class backend:
             cachedRatesdb.commit()
             print(f"Last {rowsTBDel} rows deleted successfully.")
             cachedRatesdb.commit()
+            cursor.execute("SELECT * FROM cache")
+            table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
+            print(table)
         else:
             print(f"There are not enough rows in the table to delete the last {rowsTBDel} rows")
 
-        cursor.execute("SELECT * FROM cache")
-        table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
-        print(table)
-
         cachedRatesdb.close()
-        self.dbHandler()
 
 
 if __name__ == "__main__":
-    instance = backend("INR", 10, 100, 15, 500)
+    instance = backend("INR", -1, -1, -1, -1)
     backend.dbHandler(self=instance)
-    backend.test(self=instance, rowsTBDel=4)
