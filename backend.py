@@ -164,14 +164,14 @@ class backend:
         print(table)
 
         cachedRatesdb.close()
+        self.dbHandler()
 
 
 def interface(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float, choice: int, func: int):
     instance = backend(homeCurrency, numOfDOGEToBuy, moneyToBuyDOGE, numOfLTCToBuy, moneyToBuyLTC)
     # rate: dict[str, str | float] = backend.fetchRates(self=instance)
     backend.dbHandler(self=instance)  # refresh the db
-    backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries
-    backend.dbHandler(self=instance)  # refresh again to demonstrate caching as only 3 are still cached
+    backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries and refresh again to demonstrate caching as only 3 are still cached
 
     if func:
         if choice == 2:
