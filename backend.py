@@ -136,13 +136,13 @@ class backend:
         timestamps: np.ndarray[str, np.dtype[Any]] = np.array([result[0] for result in result])
         coinRates: np.ndarray[float, np.dtype[Any]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
-        plt.style.use('dark_background')
-        plt.plot(timestamps, coinRates,color = "#a01bf2")
+        plt.style.use("dark_background")
+        plt.plot(timestamps, coinRates, color="#a01bf2")
         plt.title(f"Historical Exchange Rate Of {coin} in USD")
         plt.xlabel("Timestamps (in days)")
         plt.ylabel(f"{coin}'s exchange rate (in USD)")
         figManager = plt.get_current_fig_manager()
-        figManager.window.state('zoomed')
+        figManager.window.state("zoomed")
         plt.show()
 
     def test(self, rowsTBDel: int) -> None:
@@ -165,14 +165,15 @@ class backend:
 
         cachedRatesdb.close()
 
-def main2(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float,choice: int,func: int):
+
+def interface(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float, choice: int, func: int):
     instance = backend(homeCurrency, numOfDOGEToBuy, moneyToBuyDOGE, numOfLTCToBuy, moneyToBuyLTC)
     # rate: dict[str, str | float] = backend.fetchRates(self=instance)
     backend.dbHandler(self=instance)  # refresh the db
     backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries
     backend.dbHandler(self=instance)  # refresh again to demonstrate caching as only 3 are still cached
-    
-    if(func):
+
+    if func:
         if choice == 2:
             backend.plot(self=instance, coin="DOGE")
             backend.plot(self=instance, coin="LTC")
@@ -183,4 +184,4 @@ def main2(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOf
     else:
         ret_val = backend.compareTarget(self=instance)
         print(ret_val)
-        return(ret_val)
+        return ret_val
