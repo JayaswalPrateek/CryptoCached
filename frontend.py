@@ -206,12 +206,12 @@ class App(customtkinter.CTk):
                     self.error_box("PLEASE FILL NECESSARY FIELDS")
             else:
                 self.error_box("PLEASE FILL NECESSARY FIELDS")
-        elif not c1 and not c2:
-            self.error_box("PLEASE SELECT ATLEAST ONE CRYPTO-CURRENCY")
         else:
-            actual_backendObj = backend.backend(self.Currency_choice_optionemenu.get()[0:3], crypt1_box2, crypt1_box1, crypt2_box2, crypt2_box1)
-            if crypt1_box1 and crypt1_box2 and crypt2_box1 and crypt1_box2:
-                self.cmpr_disp(actual_backendObj.compareTarget())
+            print(c1, c2)
+            self.error_box("PLEASE SELECT ATLEAST ONE CRYPTO-CURRENCY")
+        actual_backendObj = backend.backend(self.Currency_choice_optionemenu.get()[0:3], crypt1_box2, crypt1_box1, crypt2_box2, crypt2_box1)
+        if crypt1_box1 and crypt1_box2 and crypt2_box1 and crypt1_box2:
+            self.cmpr_disp(actual_backendObj.compareTarget())
 
     # checks cryptos selected and plots them, raises errors wherever necessary
     def plt(self):
