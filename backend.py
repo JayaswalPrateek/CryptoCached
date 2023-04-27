@@ -57,7 +57,7 @@ class backend:
         return cursor, cachedRatesdb
 
     def compareTarget(self) -> dict[str, bool]:
-        today: str = str(dt.date.today())
+        today: str = str(dt.date.today() - dt.timedelta(days=1))
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
@@ -66,8 +66,6 @@ class backend:
         if today in timestamps:
             cursor.execute(f"SELECT * FROM cache WHERE timestamp = '{today}'")
             row = cursor.fetchone()
-            print(row)
-            exit()
             rates = {"time": row[0], "INR": row[1], "EUR": row[2], "GBP": row[3], "DOGE": row[4], "LTC": row[5]}
             print(f"rates for {today} already in sqlite3 cache {rates}")
         else:
