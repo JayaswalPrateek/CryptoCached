@@ -28,16 +28,12 @@ class backend:
             "GBP": rates["GBP"],
         }
 
-        response = requests.get(
-            url,
-            params={"base": "USD", "source": "crypto", "symbols": "DOGE,LTC"},
-            timeout=10,
-        )
+        response = requests.get(url, params={"base": "USD", "source": "crypto", "symbols": "DOGE,LTC"}, timeout=10)
         data = response.json()
-        print(data)
         rates = data["rates"]
         entry["DOGE"] = rates["DOGE"]
         entry["LTC"] = rates["LTC"]
+
         print(f"\nGET: {url}: {entry}\n")
         return entry
 
@@ -61,6 +57,7 @@ class backend:
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
+
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
         if today in timestamps:
@@ -70,6 +67,7 @@ class backend:
             print(f"rates for {today} already in sqlite3 cache {rates}")
         else:
             rates: dict[str, str | float] = self.fetchRates()
+
         res: dict[str, bool] = {"DOGE": False, "LTC": False}
         if self.homeCurrency != "USD":
             res["DOGE"] = self.moneyToBuyDOGE / (rates[self.homeCurrency] * self.numOfDOGEToBuy) >= rates["DOGE"]
@@ -79,20 +77,17 @@ class backend:
             res["LTC"] = self.moneyToBuyLTC / self.numOfLTCToBuy >= rates["LTC"]
 
         cachedRatesdb.close()
-
         return res
 
     def ratesThisWeek(self) -> list[dict[str, str | float]]:
         today: dt.date = dt.date.today()
-        ratesThisWeekAsListOfDicts: list[dict[str, str | float]] = list(dict())
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
-
         cursor, cachedRatesdb = self.connect2cache()
+        ratesThisWeekAsListOfDicts: list[dict[str, str | float]] = list(dict())
 
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
-
         for i in range(7, 0, -1):
             date = str(today - dt.timedelta(days=i))
             if date not in timestamps:
@@ -102,15 +97,13 @@ class backend:
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
-
-        print("DONE")
         return ratesThisWeekAsListOfDicts
 
     def dbHandler(self) -> None:
-        weekRates: list[dict[str, str | float]] = self.ratesThisWeek()
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
+        weekRates: list[dict[str, str | float]] = self.ratesThisWeek()
 
         for dc in weekRates:
             cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']}, {dc['LTC']})")
@@ -121,20 +114,26 @@ class backend:
         self.printDB()
 
     def printDB(self) -> None:
-        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
-        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+        cursor: sqlite3.Cursor
+        cachedRatesdb: sqlite3.Connection
+        cursor, cachedRatesdb = self.connect2cache()
+
         cursor.execute("SELECT * FROM cache")
         table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
         print(table)
+        cachedRatesdb.close()
 
     def plot(self, coin: str) -> None:
-        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
-        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+        cursor: sqlite3.Cursor
+        cachedRatesdb: sqlite3.Connection
+        cursor, cachedRatesdb = self.connect2cache()
+
         cursor.execute(f"SELECT timestamp, {coin} FROM cache")
         result: list[tuple[str, float]] = cursor.fetchall()
         timestamps: np.ndarray[str, np.dtype[np.string_]] = np.array([result[0] for result in result])
         coinRates: np.ndarray[float, np.dtype[np.float64]] = np.array([result[1] for result in result])
         cachedRatesdb.close()
+
         plt.style.use("dark_background")
         plt.plot(timestamps, coinRates, color="#a01bf2")
         plt.title(f"Historical Exchange Rate Of {coin} in USD")
@@ -148,8 +147,10 @@ class backend:
         if rowsTBDel < 1:
             print("Bad Input: cache unchanged")
             return
-        cachedRatesdb: sqlite3.Connection = sqlite3.connect("cachedRates.db")
-        cursor: sqlite3.Cursor = cachedRatesdb.cursor()
+        cursor: sqlite3.Cursor
+        cachedRatesdb: sqlite3.Connection
+        cursor, cachedRatesdb = self.connect2cache()
+
         cursor.execute("SELECT COUNT(*) FROM cache")
         num_rows: int = cursor.fetchone()[0]
         if num_rows >= rowsTBDel:
