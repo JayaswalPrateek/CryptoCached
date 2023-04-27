@@ -85,7 +85,7 @@ class backend:
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
 
-        for i in range(7, -1, -1):
+        for i in range(6, -1, -1):
             date = str(today - dt.timedelta(days=i))
             if date not in timestamps:  # IF THE TIMESTAMP CACHED IN DB, DONT FETCH IT AGAIN
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
@@ -141,8 +141,8 @@ class backend:
         plt.title(f"Historical Exchange Rate Of {coin} in USD")
         plt.xlabel("Timestamps (in days)")
         plt.ylabel(f"{coin}'s exchange rate (in USD)")
-        figManager = plt.get_current_fig_manager()
-        figManager.window.state("zoomed")
+        figManager: plt.FigureManagerBase = plt.get_current_fig_manager()
+        figManager.window.state("normal")
         plt.show()
 
     def test(self, rowsTBDel: int) -> None:
@@ -167,21 +167,7 @@ class backend:
         self.dbHandler()
 
 
-def interface(homeCurrency: str, numOfDOGEToBuy: float, moneyToBuyDOGE: float, numOfLTCToBuy: float, moneyToBuyLTC: float, choice: int, func: int):
-    instance = backend(homeCurrency, numOfDOGEToBuy, moneyToBuyDOGE, numOfLTCToBuy, moneyToBuyLTC)
-    # rate: dict[str, str | float] = backend.fetchRates(self=instance)
-    backend.dbHandler(self=instance)  # refresh the db
-    backend.test(self=instance, rowsTBDel=4)  # remove bottom 4 entries and refresh again to demonstrate caching as only 3 are still cached
-
-    if func:
-        if choice == 2:
-            backend.plot(self=instance, coin="DOGE")
-            backend.plot(self=instance, coin="LTC")
-        elif choice == 1:
-            backend.plot(self=instance, coin="DOGE")
-        else:
-            backend.plot(self=instance, coin="LTC")
-    else:
-        ret_val = backend.compareTarget(self=instance)
-        print(ret_val)
-        return ret_val
+if __name__ == "__main__":
+    instance = backend("INR", 10, 100, 15, 500)
+    backend.dbHandler(self=instance)
+    backend.test(self=instance, rowsTBDel=4)
