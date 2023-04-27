@@ -207,7 +207,6 @@ class App(customtkinter.CTk):
             else:
                 self.error_box("PLEASE FILL NECESSARY FIELDS")
         else:
-            print(c1, c2)
             self.error_box("PLEASE SELECT ATLEAST ONE CRYPTO-CURRENCY")
         actual_backendObj = backend.backend(self.Currency_choice_optionemenu.get()[0:3], crypt1_box2, crypt1_box1, crypt2_box2, crypt2_box1)
         if crypt1_box1 and crypt1_box2 and crypt2_box1 and crypt1_box2:
