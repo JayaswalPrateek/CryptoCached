@@ -125,7 +125,7 @@ class App(customtkinter.CTk):
     def restart_program(self):
         self.destroy()
 
-    # makes sure entryboxes can only store 2 decimal float values above zeros, rounds up or clears invalid values
+    # makes sure entryboxes can only store 6 decimal float values above zeros, rounds up or clears invalid values
     def validate_float(self, entry):
         try:
             value = float(entry.get())
@@ -133,12 +133,12 @@ class App(customtkinter.CTk):
                 entry.select_clear()
                 entry.delete(0, "end")
                 return False
-            elif round(value, 4) == value:
+            elif round(value, 6) == value:
                 return True
             else:
                 entry.select_clear()
                 entry.delete(0, "end")
-                entry.insert(0, round(value, 4))
+                entry.insert(0, round(value, 6))
                 return False
         except ValueError:
             entry.select_clear()
@@ -159,7 +159,7 @@ class App(customtkinter.CTk):
             pass
         self.disp_label.configure(text=txt)
 
-    # compares values entered in entry boxes with actual crypto rates,raises errors wherever necessary
+    # compares values entered in entry boxes with actual crypto rates, raises errors wherever necessary
     def cmpr(self):
         c1 = self.crypt1_cb.get()
         c2 = self.crypt2_cb.get()
@@ -212,7 +212,7 @@ class App(customtkinter.CTk):
             actual_backendObj = backend.backend(self.Currency_choice_optionemenu.get()[0:3], crypt1_box2, crypt1_box1, crypt2_box2, crypt2_box1)
             self.cmpr_disp(actual_backendObj.compareTarget())
 
-    # checks cryptos selected and plots them, raises errors wherever necessary
+    # checks cryptos selected and plots them, raises error_box wherever necessary
     def plt(self):
         c1 = self.crypt1_cb.get()
         c2 = self.crypt2_cb.get()

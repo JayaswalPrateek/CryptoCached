@@ -68,6 +68,8 @@ class backend:
             print(f"rates for {today} already in sqlite3 cache {rates}")
         else:
             rates: dict[str, str | float] = self.fetchRates()
+            cursor.execute(f"INSERT INTO cache VALUES ('{rates['time']}', {rates['INR']}, {rates['EUR']}, {rates['GBP']}, {rates['DOGE']}, {rates['LTC']})")
+            print(f"cached {rates}")
 
         res: dict[str, bool] = {"DOGE": False, "LTC": False}
         if self.homeCurrency != "USD":
@@ -80,7 +82,7 @@ class backend:
         cachedRatesdb.close()
         return res
 
-    def ratesThisWeek(self) -> list[dict[str, str | float]]:
+    def ratesInThePast(self) -> list[dict[str, str | float]]:
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
@@ -96,7 +98,6 @@ class backend:
             else:
                 print(f"rates for {date} already cached")
 
-        cachedRatesdb.commit()
         cachedRatesdb.close()
         return ratesThisWeekAsListOfDicts
 
@@ -104,17 +105,17 @@ class backend:
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
-        weekRates: list[dict[str, str | float]] = self.ratesThisWeek()
+        pastRates: list[dict[str, str | float]] = self.ratesInThePast()
 
-        for dc in weekRates:
+        for dc in pastRates:
             cursor.execute(f"INSERT INTO cache VALUES ('{dc['time']}', {dc['INR']}, {dc['EUR']}, {dc['GBP']}, {dc['DOGE']}, {dc['LTC']})")
             print(f"cached {dc}")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
-        self.printDB()
+        self.printCACHE()
 
-    def printDB(self) -> None:
+    def printCACHE(self) -> None:
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
@@ -160,7 +161,7 @@ class backend:
             cachedRatesdb.commit()
             print(f"Last {rowsTBDel} rows successfully deleted")
             cachedRatesdb.commit()
-            self.printDB()
+            self.printCACHE()
         else:
             print(f"There are not enough rows in cache to delete the last {rowsTBDel} rows")
 
