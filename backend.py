@@ -89,7 +89,7 @@ class backend:
 
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
-        for i in range(10, 0, -1):
+        for i in range(14, 0, -1):
             date = str(today - dt.timedelta(days=i))
             if date not in timestamps:
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
