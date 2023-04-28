@@ -57,7 +57,7 @@ class backend:
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
-        today: str = str(dt.date.today - dt.timedelta(days=1))
+        today: str = str(dt.date.today() - dt.timedelta(days=1))
 
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
@@ -89,7 +89,7 @@ class backend:
 
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
-        for i in range(7, 0, -1):
+        for i in range(10, 0, -1):
             date = str(today - dt.timedelta(days=i))
             if date not in timestamps:
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))

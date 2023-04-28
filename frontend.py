@@ -133,12 +133,12 @@ class App(customtkinter.CTk):
                 entry.select_clear()
                 entry.delete(0, "end")
                 return False
-            elif round(value, 2) == value:
+            elif round(value, 4) == value:
                 return True
             else:
                 entry.select_clear()
                 entry.delete(0, "end")
-                entry.insert(0, round(value, 2))
+                entry.insert(0, round(value, 4))
                 return False
         except ValueError:
             entry.select_clear()
