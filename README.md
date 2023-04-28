@@ -1,12 +1,12 @@
 # <mark style="background: #D2B3FFA6;">Project Introduction</mark>
 
-Cryptocurrency is a digital or virtual currency that uses cryptography to secure and verify transactions and our Cryptocurrency tracker is a tool that helps in monitoring the exchange rates of different currencies in the market. 
+Cryptocurrency is a digital or virtual currency that uses cryptography to secure and verify transactions and our Cryptocurrency tracker is a tool that helps in monitoring the exchange rates of different currencies in the market.
 
 The objective of this project is to develop a cryptocurrency tracker with and underlying stateless cache based on an sqlite3 database.
 
 An API provides us the exchange rates of INR, EUR, GBP, DOGE and LTC against USD to compare the target exchange rates for DOGE and LTC with the current exchange rates to determine whether it is profitable to buy DOGE or LTC in your home currency.
 
-When the program fetches the currency rates from an external API, it caches them in a sqlite3 database for future use. 
+When the program fetches the currency rates from an external API, it caches them in a sqlite3 database for future use.
 
 The database is used as a stateless cache for the rates, so that the program doesn't have to request it from the API again every time it runs.
 
@@ -15,7 +15,13 @@ This approach has a few advantages as it reduces the load on the API host by onl
 
 # <mark style="background: #D2B3FFA6;">Tools & Technologies</mark>
 The project is developed in Python programming language and the following Python libraries have been used in our project:
-![](https://raw.githubusercontent.com/JayaswalPrateek/ppSem2project/main/README_assets/table.png)
+| **import** 	| **application** 	|
+|:---:	|:---:	|
+| _sqlite3_ 	| to create and manage the cache for exchange rates. 	|
+| _requests_ 	| to send HTTPS requests to the API. 	|
+| _prettytable_ 	| to display the exchange rates in a table. 	|
+| _matplotlib_ 	| to plot the exchange rates in a graph. 	|
+| _tkinter_ 	| bindings to the TK GUI toolkit 	|
 
 # <mark style="background: #D2B3FFA6;">Scope of Project</mark>
 A Cryptocurrency tracker using stateless cache has the following applications in various industries:
@@ -212,7 +218,7 @@ if __name__ == "__main__":
 		- from API hosted on the domain `https://api.exchangerate.host/<date>"`
 	- sends 2 GET requests
 		- one asks for the rates of Fiat Currencies INR, EUR, GBP against USD
-		- another asks for rates of Crypto Currencies Dogecoin and Litecoin against USD 
+		- another asks for rates of Crypto Currencies Dogecoin and Litecoin against USD
 	- it extracts the rates from the request object and appends it to a dictionary called `entry` that with a timestamp
 	- `entry` is returned
 - `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
@@ -490,7 +496,7 @@ if __name__ == "__main__":
 - `isConnected(self)` checks if wifi is connected
 - `restart_program(self)` destroys app window
 - `validate_float(self, entry)` makes sure entryboxes can only store 6 decimal float values above zeros, rounds up or clears invalid values
-- `cmpr_disp(self, cmprd)` displays comparison values 
+- `cmpr_disp(self, cmprd)` displays comparison values
 - `cmpr(self)` compares values entered in entry boxes with actual crypto rates, raises errors wherever necessary
 - `plt(self)` checks cryptos selected and plots them, raises `error_box` wherever necessary
 
