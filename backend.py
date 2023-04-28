@@ -53,10 +53,11 @@ class backend:
         return cursor, cachedRatesdb
 
     def compareTarget(self) -> dict[str, bool]:
-        today: str = str(dt.date.today() - dt.timedelta(days=1))
+        # self.test(1)
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
+        today: str = str(dt.date.today - dt.timedelta(days=1))
 
         cursor.execute("SELECT timestamp FROM cache")
         timestamps: list[str] = [row[0] for row in cursor.fetchall()]
@@ -80,10 +81,10 @@ class backend:
         return res
 
     def ratesThisWeek(self) -> list[dict[str, str | float]]:
-        today: dt.date = dt.date.today()
         cursor: sqlite3.Cursor
         cachedRatesdb: sqlite3.Connection
         cursor, cachedRatesdb = self.connect2cache()
+        today: dt.date = dt.date.today()
         ratesThisWeekAsListOfDicts: list[dict[str, str | float]] = list(dict())
 
         cursor.execute("SELECT timestamp FROM cache")
@@ -93,7 +94,7 @@ class backend:
             if date not in timestamps:
                 ratesThisWeekAsListOfDicts.append(self.fetchRates(date))
             else:
-                print(f"rates for {date} already in sqlite3 cache")
+                print(f"rates for {date} already cached")
 
         cachedRatesdb.commit()
         cachedRatesdb.close()
@@ -121,6 +122,7 @@ class backend:
         cursor.execute("SELECT * FROM cache")
         table: prettytable.PrettyTable | None = prettytable.from_db_cursor(cursor)
         print(table)
+
         cachedRatesdb.close()
 
     def plot(self, coin: str) -> None:
