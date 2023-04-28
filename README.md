@@ -2,7 +2,7 @@
 
 Cryptocurrency is a digital or virtual currency that uses cryptography to secure and verify transactions and our Cryptocurrency tracker is a tool that helps in monitoring the exchange rates of different currencies in the market.
 
-The objective of this project is to develop a cryptocurrency tracker with and underlying stateless cache based on an sqlite3 database.
+The objective of this project is to develop a cryptocurrency tracker with an underlying stateless cache based on an sqlite3 database.
 
 An API provides us the exchange rates of INR, EUR, GBP, DOGE and LTC against USD to compare the target exchange rates for DOGE and LTC with the current exchange rates to determine whether it is profitable to buy DOGE or LTC in your home currency.
 
