@@ -215,7 +215,7 @@ if __name__ == "__main__":
 	- `numOfLTCToBuy: float` is the number of DOGE coins you aim to buy for `moneyToBuyLTC: float` money in your home currency
 - `fetchRates(self, date: str = "latest") -> dict[str, str | float]`
 	- returns the latest rates when called without any arguments otherwise can return rates for a specific date provided as a string in the format `"YYYY-MM-DD"`
-		- from API hosted on the domain `https://api.exchangerate.host/<date>"`
+		- from API hosted on the domain `https://api.exchangerate.host/<date>`
 	- sends 2 GET requests
 		- one asks for the rates of Fiat Currencies INR, EUR, GBP against USD
 		- another asks for rates of Crypto Currencies Dogecoin and Litecoin against USD
