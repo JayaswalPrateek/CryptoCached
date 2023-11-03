@@ -14,25 +14,29 @@ In this program, the caching is stateless, which means that the server hosting t
 This approach has a few advantages as it reduces the load on the API host by only making requests when necessary, it speeds up the program by avoiding unnecessary requests and database writes.
 
 # <mark style="background: #D2B3FFA6;">Tools & Technologies</mark>
+
 The project is developed in Python programming language and the following Python libraries have been used in our project:
-| **import** 	| **application** 	|
-|:---:	|:---:	|
-| _sqlite3_ 	| to create and manage the cache for exchange rates. 	|
-| _requests_ 	| to send HTTPS requests to the API. 	|
-| _prettytable_ 	| to display the exchange rates in a table. 	|
-| _matplotlib_ 	| to plot the exchange rates in a graph. 	|
-| _tkinter_ 	| bindings to the TK GUI toolkit 	|
+| **import** | **application** |
+|:---: |:---: |
+| _sqlite3_ | to create and manage the cache for exchange rates. |
+| _requests_ | to send HTTPS requests to the API. |
+| _prettytable_ | to display the exchange rates in a table. |
+| _matplotlib_ | to plot the exchange rates in a graph. |
+| _tkinter_ | bindings to the TK GUI toolkit |
 
 # <mark style="background: #D2B3FFA6;">Scope of Project</mark>
+
 A Cryptocurrency tracker using stateless cache has the following applications in various industries:
--   **Finance**: The tracker can be used by financial analysts to monitor the exchange rates of different currencies and make informed decisions regarding investments.
--   **E-commerce**: The tracker can be integrated with e-commerce websites to provide real-time exchange rates to customers and allow them to make purchases in different currencies.
--   **Travel**: The tracker can be used by travelers to monitor the exchange rates of different currencies and make informed decisions regarding foreign currency exchange.
--   **Education**: The tracker can be used as a learning tool to teach students about cryptocurrency and how it works. The tracker can also be used to teach students about exchange rates and how they fluctuate over time.
+
+- **Finance**: The tracker can be used by financial analysts to monitor the exchange rates of different currencies and make informed decisions regarding investments.
+- **E-commerce**: The tracker can be integrated with e-commerce websites to provide real-time exchange rates to customers and allow them to make purchases in different currencies.
+- **Travel**: The tracker can be used by travelers to monitor the exchange rates of different currencies and make informed decisions regarding foreign currency exchange.
+- **Education**: The tracker can be used as a learning tool to teach students about cryptocurrency and how it works. The tracker can also be used to teach students about exchange rates and how they fluctuate over time.
 
 # <mark style="background: #D2B3FFA6;">Implementation - Code</mark>
 
 ## <mark style="background: #FFB86CA6;">backend.py</mark>
+
 ```python
 import datetime as dt
 import sqlite3
@@ -209,54 +213,56 @@ if __name__ == "__main__":
     backend.dbHandler(self=instance)
     backend.compareTarget(self=instance)
 ```
+
 - **constructor** for the backend class requires:
-	- `homeCurrency: str` can be `"INR"` ,  `"USD"` ,  `"EUR"` ,  `"GBP"`
-	- `numOfDOGEToBuy: float` is the number of DOGE coins you aim to buy for `moneyToBuyDOGE: float` money in your home currency
-	- `numOfLTCToBuy: float` is the number of DOGE coins you aim to buy for `moneyToBuyLTC: float` money in your home currency
+  - `homeCurrency: str` can be `"INR"` , `"USD"` , `"EUR"` , `"GBP"`
+  - `numOfDOGEToBuy: float` is the number of DOGE coins you aim to buy for `moneyToBuyDOGE: float` money in your home currency
+  - `numOfLTCToBuy: float` is the number of DOGE coins you aim to buy for `moneyToBuyLTC: float` money in your home currency
 - `fetchRates(self, date: str = "latest") -> dict[str, str | float]`
-	- returns the latest rates when called without any arguments otherwise can return rates for a specific date provided as a string in the format `"YYYY-MM-DD"`
-		- from API hosted on the domain `https://api.exchangerate.host/<date>`
-	- sends 2 GET requests
-		- one asks for the rates of Fiat Currencies INR, EUR, GBP against USD
-		- another asks for rates of Crypto Currencies Dogecoin and Litecoin against USD
-	- it extracts the rates from the request object and appends it to a dictionary called `entry` that with a timestamp
-	- `entry` is returned
+  - returns the latest rates when called without any arguments otherwise can return rates for a specific date provided as a string in the format `"YYYY-MM-DD"`
+    - from API hosted on the domain `https://api.exchangerate.host/<date>`
+  - sends 2 GET requests
+    - one asks for the rates of Fiat Currencies INR, EUR, GBP against USD
+    - another asks for rates of Crypto Currencies Dogecoin and Litecoin against USD
+  - it extracts the rates from the request object and appends it to a dictionary called `entry` that with a timestamp
+  - `entry` is returned
 - `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
-	- creates the cache as a sqlite3 database if it doesn't exist already
-	- returns an opened connection to the cache and a cursor to the cache as objects
-	- decoupled to conform to the DRY principle
+  - creates the cache as a sqlite3 database if it doesn't exist already
+  - returns an opened connection to the cache and a cursor to the cache as objects
+  - decoupled to conform to the DRY principle
 - `compareTarget(self) -> dict[str, bool]`
-	- opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
-	- extracts the entire column for timestamps from the cache and checks for the timestamp for the present day
-		- if the timestamp for the present day is not found, it calls `fetchRates(self, date: str = "latest") -> dict[str, str | float]` and caches the rates
-	- then it makes precise calculations using both, the latest exchange rates between Crypto Currencies against USD and the exchange rates between your home currency against USD
-		- from these calculations it predicts if the current rate meets the requirement for buying a set number of tokens for a set amount of money passed during the creation of the object
-		- it returns a dictionary like `{"DOGE": True/False, "LTC": True/False}` after closing the connection to the cache
+  - opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
+  - extracts the entire column for timestamps from the cache and checks for the timestamp for the present day
+    - if the timestamp for the present day is not found, it calls `fetchRates(self, date: str = "latest") -> dict[str, str | float]` and caches the rates
+  - then it makes precise calculations using both, the latest exchange rates between Crypto Currencies against USD and the exchange rates between your home currency against USD
+    - from these calculations it predicts if the current rate meets the requirement for buying a set number of tokens for a set amount of money passed during the creation of the object
+    - it returns a dictionary like `{"DOGE": True/False, "LTC": True/False}` after closing the connection to the cache
 - `ratesInThePast(self) -> list[dict[str, str | float]]`
-	- opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
-	- extracts the entire column for timestamps from the cache
-	- loops over the last 14 days using variable `date`
-		- it calls `fetchRates(self, date: str = "latest") -> dict[str, str | float]` with `str = date` if `date not in timestamps`
-	- it returns a list of rates that we fetched from `fetchRates()` (which is later cached by `dbHandler(self) -> None`) after closing the connection to the cache
+  - opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
+  - extracts the entire column for timestamps from the cache
+  - loops over the last 14 days using variable `date`
+    - it calls `fetchRates(self, date: str = "latest") -> dict[str, str | float]` with `str = date` if `date not in timestamps`
+  - it returns a list of rates that we fetched from `fetchRates()` (which is later cached by `dbHandler(self) -> None`) after closing the connection to the cache
 - `dbHandler(self) -> None`
-	- opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
-	- stores the result of `ratesInThePast(self) -> list[dict[str, str | float]]` in variable `pastRates`
-	- caches the rates in `pastRates`
-	- commits and closes the connection to the cache
-	- prints the entire cache in a tabular form using `printCACHE(self) -> None`
+  - opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
+  - stores the result of `ratesInThePast(self) -> list[dict[str, str | float]]` in variable `pastRates`
+  - caches the rates in `pastRates`
+  - commits and closes the connection to the cache
+  - prints the entire cache in a tabular form using `printCACHE(self) -> None`
 - `plot(self, coin: str) -> None` where coin can be either `"DOGE"` or `"LTC"`
-	- opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
-	- queries the cache for entire column of timestamps and the rates for `coin` and stores them into numpy arrays called `timestamps` and `coinRates` respectively
-	- close the connection to the cache
-	- plots a line chart showing fluctuations of prices of `coin` over time with `timestamps` on X-Axis and `coinRates` on Y-Axis
+  - opens connection to the cache using `connect2cache(self) -> tuple[sqlite3.Cursor, sqlite3.Connection]`
+  - queries the cache for entire column of timestamps and the rates for `coin` and stores them into numpy arrays called `timestamps` and `coinRates` respectively
+  - close the connection to the cache
+  - plots a line chart showing fluctuations of prices of `coin` over time with `timestamps` on X-Axis and `coinRates` on Y-Axis
 - `test(self, rowsTBDel: int) -> None` where `rowsTBDel` is the number of rows to be deleted
-	- deletes `rowsTBDel` number of rows from cache from the bottom after validating `rowsTBDel`
-	- used for debugging and forcefully demonstrating caching mechanism by <mark style="background: #FFB86CA6;">test_cache.py</mark>
-		- if the last 2 rows are deleted, the rates for last 2 days are deleted
-		- when `dbHandler(self) -> None` is called it calls `ratesInThePast(self) -> list[dict[str, str | float]]`
-		- `ratesInThePast(self) -> list[dict[str, str | float]]` will only fetch the rates for last 2 days as the rates before it are already cached
+  - deletes `rowsTBDel` number of rows from cache from the bottom after validating `rowsTBDel`
+  - used for debugging and forcefully demonstrating caching mechanism by <mark style="background: #FFB86CA6;">test_cache.py</mark>
+    - if the last 2 rows are deleted, the rates for last 2 days are deleted
+    - when `dbHandler(self) -> None` is called it calls `ratesInThePast(self) -> list[dict[str, str | float]]`
+    - `ratesInThePast(self) -> list[dict[str, str | float]]` will only fetch the rates for last 2 days as the rates before it are already cached
 
 ## <mark style="background: #FFB86CA6;">frontend.py</mark>
+
 ```python
 import tkinter
 import tkinter.messagebox
@@ -282,7 +288,7 @@ class App(customtkinter.CTk):
         self.backendObj = backend.backend("INR", -1, -1, -1, -1)
         self.backendObj.dbHandler()  # builds cache if missing as soon as the program starts
 
-        self.title("CRYTO-SPHERE")
+        self.title("CryptoCached")
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure((2, 3), weight=0)
@@ -492,6 +498,7 @@ if __name__ == "__main__":
     app.state("normal")
     app.mainloop()
 ```
+
 - `error_box(self, txt)` displays error message on a pop-up message box
 - `isConnected(self)` checks if wifi is connected
 - `restart_program(self)` destroys app window
@@ -501,6 +508,7 @@ if __name__ == "__main__":
 - `plt(self)` checks cryptos selected and plots them, raises `error_box` wherever necessary
 
 # <mark style="background: #D2B3FFA6;">Screenshots</mark>
+
 ![](https://raw.githubusercontent.com/JayaswalPrateek/ppSem2project/main/README_assets/ss1.png)
 ![](https://raw.githubusercontent.com/JayaswalPrateek/ppSem2project/main/README_assets/ss2.png)
 ![](https://raw.githubusercontent.com/JayaswalPrateek/ppSem2project/main/README_assets/ss3.png)

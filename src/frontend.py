@@ -22,7 +22,7 @@ class App(customtkinter.CTk):
         self.backendObj = backend.backend("INR", -1, -1, -1, -1)
         self.backendObj.dbHandler()  # builds cache if missing as soon as the program starts
 
-        self.title("CRYTO-SPHERE")
+        self.title("CryptoCached")
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure((2, 3), weight=0)
